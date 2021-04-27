@@ -7,6 +7,7 @@ import argparse as ap
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier, export_graphviz
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 
 
 def parse_arguments():
@@ -47,7 +48,7 @@ if __name__ == '__main__':
     data_train, data_test, target_train, target_test = \
         train_test_split(data, target, test_size=args.train_test_split)
 
-    classifier = DecisionTreeClassifier(max_depth=args.max_depth,min_impurity_split=args.acceptable_impurity)
+    classifier = DecisionTreeClassifier(max_depth=args.max_depth, min_impurity_decrease=args.acceptable_impurity)
     classifier.fit(data_train, target_train)
 
     class_nms = target.unique().astype(str)
@@ -73,7 +74,8 @@ if __name__ == '__main__':
     print('Values:')
     print(class_nms[answers])
 
-    classifier = RandomForestClassifier(max_depth=args.max_depth, n_estimators=9)
+    classifier = RandomForestClassifier(min_impurity_decrease=args.acceptable_impurity,
+                                        max_depth=args.max_depth, n_estimators=9)
     classifier.fit(data_train, target_train)
 
     print(len(classifier.estimators_))
@@ -93,4 +95,15 @@ if __name__ == '__main__':
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
 
+    sample = data_test.sample()
+    print(sample)
+    print(target_test[sample.index])
+    print(classifier.predict(sample))
+
+    print('Stats')
+    responses = classifier.predict(data_test)
+
+    print(confusion_matrix(target_test, responses))
+    print(classification_report(target_test, responses))
+    print(accuracy_score(target_test, responses))
     plt.show()
